@@ -97,63 +97,6 @@ const verifyEmail = async (req, res, next) => {
     }
 };
 
-// const loginUser = async (req, res, next) => {
-//     const { email, password } = req.body;
-//     console.log(req.body);
-
-
-//     // Check if both email and password are provided
-//     if (!email || !password) {
-//         const err = new Error("Email and Password are required.");
-//         err.statusCode = 400;
-//         return next(err);
-//     }
-//     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-//     if (!emailRegex.test(email)) {
-//         return res.status(400).json({ message: "Invalid Email format." });
-//     }
-
-//     try {
-//         // Find the user by email
-//         const user = await User.findOne({ email });
-
-//         // If the user doesn't exist
-//         if (!user) {
-//             const err = new Error("Invalid email or password.");
-//             err.statusCode = 401; // Unauthorized
-//             return next(err);
-//         }
-
-//         // Ensure the user is verified before allowing login
-//         if (!user.verified) {
-//             const err = new Error("Account verification pending. Please check your email to verify your account.");
-//             err.statusCode = 409; // Conflict
-//             return next(err);
-//         }
-
-//         // Compare the entered password with the stored hashed password
-//         const passwordMatched = await bcrypt.compare(password, user.password);
-
-//         if (!passwordMatched) {
-//             const err = new Error("Invalid email or password.");
-//             err.statusCode = 401; // Unauthorized
-//             return next(err);
-//         }
-
-//         // Generate a JWT token upon successful login (expires in 30 days)
-//         const token = jwt.sign(
-//             { userId: user._id, email },
-//             process.env.JWT_SECRET,
-//             { expiresIn: 2592000 } // JWT expires in 30 days
-//         );
-
-//         user.token = token;
-//         await user.save();  // Save the token to the user model
-//     } catch (error) {
-//         console.error("Error in login:", error);
-//         return next(error);
-//     }
-// };
 const loginUser = async (req, res, next) => {
     const { email, password } = req.body;
     console.log(req.body);  // Check if email and password are received
@@ -186,7 +129,7 @@ const loginUser = async (req, res, next) => {
         const passwordMatched = await bcrypt.compare(password, user.password);
 
         if (!passwordMatched) {
-            return res.status(401).json({ message: "Invalid email or password." });
+            return res.status(401).json({ message: "Invalid password." });
         }
 
         // Generate a JWT token upon successful login
@@ -202,13 +145,16 @@ const loginUser = async (req, res, next) => {
         if (!savedUser) {
             return res.status(500).json({ message: "Error saving user token." });
         }
-
-        // Send the success response with the token
-        return res.status(200).json({
-            message: "Login successful",
-            token: token
+        const spotifyAPI = new SpotifyWebApi({
+            clientId: process.env.SOPTIFY_CLIENT_ID,
+            clientSecret:process.env.SOPTIFY_CLIENT_SECRET,
         });
 
+        const spotifyCredentials = await spotifyAPI.clientCredentialsGrant();
+        const spotifyToken = spotifyCredentials.body;
+        const expiresIn = 2592000;
+        // console.log("spotify api is generated");
+        res.status(200).json({ token, spotifyToken, expiresIn });
     } catch (error) {
         console.error("Error in login:", error);
         return res.status(500).json({ message: "Server error during login." });
