@@ -34,6 +34,7 @@ const createUser = async (req, res, next) => {
         const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "2h" });
 
         // Send the verification email
+        try{
         const verificationEmailResponse = await sendEmailVerificationLink(email, token, first_name);
 
         // Check if the email sending failed
@@ -52,12 +53,18 @@ const createUser = async (req, res, next) => {
         });
 
         // Send success message
-        return res.status(201).send("Registered successfully. Please check your mail to verify the account");
+        return res.status(201).json({
+            message:
+            "Registered successfully. Please check email for the verification link.",
+        });
 
-    } catch (error) {
-        console.error("Error in user creation:", error);
-        return next(error); // Forward error to global error handler
+    } catch (emailError) {
+       
+        return next(emailError); // Forward error to global error handler
     }
+}catch(err){
+    return next(err);
+}
 };
 
 // Verify email address
