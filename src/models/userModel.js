@@ -15,6 +15,12 @@ const userSchema = mongoose.Schema(
         reset_password_token: { type: String },
         reset_password_expires: Date,
         status: { type: Boolean, default: true },
+        //mobile
+        otp: { type: String },
+        otp_expires: Date,
+        reset_password_otp: { type: String },
+        reset_password_otp_expires_in: Date,
+
     },
     {
         timestamps:{

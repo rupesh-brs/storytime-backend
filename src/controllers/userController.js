@@ -1,10 +1,12 @@
 import User from "../models/userModel.js";
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { sendEmailVerificationLink, sendPasswordVerificationLink } from "../utils/utils.js";
 import SpotifyWebApi from "spotify-web-api-node";
 import Language from "../models/languageModel.js";
 
+const OTP_EXPIRATION_TIME = 10 * 60 * 1000; // 10 minutes in milliseconds
 // Function to create a new user
 const createUser = async (req, res, next) => {
     const { first_name, last_name, email, password } = req.body;
